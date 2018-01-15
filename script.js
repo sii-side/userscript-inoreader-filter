@@ -1,34 +1,41 @@
 // ==UserScript==
-// @name         Filter for Inoreader
+// @name         Inoreader Filter
 // @namespace    sii
-// @version      0.0.1
-// @description  Userscript for hiding articles by deny words
+// @version      0.2
+// @description  Inoreaderで特定のワードがタイトルに含まれている記事を非表示にする
 // @author       sii
-// @match        http://www.inoreader.com/*
+// @match        https://*.inoreader.com/*
 // @grant        none
 // ==/UserScript==
 
-(function() {
+(function () {
   'use strict';
 
-  //deny words for article's title
-  const deny_title = ['aaa', 'bbb'];
+  // define keywords to hide
+  const denyTitles = [
+      'keywords',
+      'for',
+      'filtering'
+  ];
 
+  const denyRegExp = new RegExp(denyTitles.join('|'));
   const observer = new MutationObserver(mutations => {
-    mutations.forEach(mutation => {
-      [].filter.call(mutation.addedNodes, node => {
-        return node.classList && node.classList.contains('ar');
-      }).forEach(article => {
-        const title = article.querySelector('.article_header_title').innerHTML;
-        if (new RegExp(deny_title.join('|')).test(title)) {
-          article.style.display = 'none';
-        }
-      });
-    });
+        mutations.forEach(mutation => {
+            [].filter.call(mutation.addedNodes, node => {
+                return node.classList && node.classList.contains('ar');
+            }).forEach(article => {
+                const articleTitle = article.querySelector('.article_header_title').innerHTML;
+                if (denyRegExp.test(articleTitle)) {
+                    article.style.display = 'none';
+                }
+            });
+        });
   });
 
-  observer.observe(document.querySelector('#reader_pane'), {
-    childList: true,
-    subtree: true,
-  });
+  const readerPane = document.querySelector('#reader_pane');
+  const observeOption = {
+      childList: true,
+      subtree: true
+  };
+  observer.observe(readerPane, observeOption);
 })();
